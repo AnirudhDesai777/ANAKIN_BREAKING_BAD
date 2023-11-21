@@ -1,7 +1,8 @@
 import numpy as np
 import random
 import math
-
+import heapq
+from Helpers import validNeighbourBFS, validMovesASTAR
 #initialize the grid
 shape = (20,20)
 Grid = np.zeros(shape=shape)
@@ -28,24 +29,6 @@ def obstacleMap(Grid,start_state,light_goal,dark_goal):
                 if(r<=prob):
                     Grid[i][j] = -1
     return Grid
-
-
-
-# we check all the valid neighbours of the current position
-def validNeighbourBFS(Grid, node):
-    neighbors = []
-    
-    if node[0]+1 >= 0 and node[0]+1 < len(Grid) and Grid[node] != -1:
-        neighbors.append((node[0]+1, node[1]))
-    if node[0]-1 >= 0 and node[0]-1 < len(Grid) and Grid[node] != -1:
-        neighbors.append((node[0]-1, node[1]))    
-    if node[1]+1 >= 0 and node[1]+1 < len(Grid) and Grid[node] != -1:
-        neighbors.append((node[0], node[1]+1))
-    if node[1]-1 >= 0 and node[1]-1 < len(Grid) and Grid[node] != -1:
-        neighbors.append((node[0], node[1]-1))
-    
-    return neighbors
-
 
 
 # running BFS to check for valid path from start to light
@@ -86,6 +69,58 @@ while(light_goal not in path and dark_goal not in path):
 #print grid
 print(Grid)
 
-#enemy placement in the grid
-def enemy_placement(Grid,start_state,light_goal,dark_goal):
+#Heuristic function for A*
+def H_score(node, goal, n):  
+    heuristic = (abs(node[0] - goal[0]) + abs(node[1] - goal[1])) / (n - 1)
+    return heuristic
+
+#finding shortest path from start state to light goal using A*
+def lightPathASTAR(Grid, start,light_goal,dark_goal):
+
+    g = {}
+    f = {}
+    openList = []
+    closeList = []
+    parent = {}
+
+    for i in range(len(Grid)):
+        for j in range(len(Grid)):
+            g[(i, j)] = np.inf
+
+    g[start] = 0
+    f[start] = H_score(start, light_goal, len(Grid))
+    heapq.heappush(openList, (f[start], start))
+
+    while openList:
+        currentNode = heapq.heappop(openList)[1]
+
+        if currentNode in closeList:
+            continue
+
+        closeList.append(currentNode)
+
+        if currentNode == light_goal:
+            path = []
+            while currentNode in parent:
+                path.append(currentNode)
+                currentNode = parent[currentNode]
+            path.append(start)
+            path.reverse()
+            return len(path) - 1, path
+
+        for neighbor in validMovesASTAR(Grid, currentNode,dark_goal):
+            new_g = g[currentNode] + 1
+
+            if new_g < g[neighbor]:
+                parent[neighbor] = currentNode
+                g[neighbor] = new_g
+                f[neighbor] = g[neighbor] + H_score(neighbor, light_goal, len(Grid))
+                heapq.heappush(openList, (f[neighbor], neighbor))
+    return None, []
+
+light_path = lightPathASTAR(Grid,start_state,light_goal,dark_goal)
+print(light_path)
+
+#initialize enemies in the path except for the path given by ASTAR to light.
+def initalize_enemies(Grid,start_state,light_goal,dark_goal):
     pass
