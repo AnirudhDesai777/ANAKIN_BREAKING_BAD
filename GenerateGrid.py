@@ -2,18 +2,10 @@ import numpy as np
 import random
 import math
 import heapq
-from Helpers import validNeighbourBFS, validMovesASTAR
-#initialize the grid
-shape = (20,20)
-Grid = np.zeros(shape=shape)
+from Helpers import validNeighbourBFS, validMovesASTAR, visualize_grid
 
-#set the goal rewards
-lightReward = 100
-darkReward = 10
-
-
-#set the start state somewhere in the between
-start_state = (math.floor((Grid.shape[0]-1)/2),0)
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 # randomly initialize cells as obstacles with a probability
@@ -32,7 +24,7 @@ def obstacleMap(Grid,start_state,light_goal,dark_goal):
 
 
 # running BFS to check for valid path from start to light
-def BFS(graph, start):
+def BFS(Grid, start):
     visited = set()
     queue = []  
     queue.append(start)
@@ -50,12 +42,18 @@ def BFS(graph, start):
     
     return path
     
+def grid_initialization(size=10):
+    shape = (size,size)
+    Grid = np.zeros(shape=shape)
+    #assign dark and light goal states
+    light_goal = (Grid.shape[0]-1,Grid.shape[1]-1)
+    dark_goal = (0,Grid.shape[0]-1)
+    Grid[light_goal] = 100
+    Grid[dark_goal] = 10
+    start_state = (math.floor((Grid.shape[0]-1)/2),0)
+    return Grid, start_state,light_goal,dark_goal
 
-#assign dark and light goal states
-light_goal = (Grid.shape[0]-1,Grid.shape[1]-1)
-dark_goal = (0,Grid.shape[0]-1)
-Grid[light_goal] = 100
-Grid[dark_goal] = 10
+Grid,start_state,light_goal,dark_goal = grid_initialization()
 
 #initialize obstacle map
 Grid = obstacleMap(Grid,start_state,light_goal,dark_goal)
@@ -63,11 +61,12 @@ Grid = obstacleMap(Grid,start_state,light_goal,dark_goal)
 #check if a path exists to the light goal otherwise regenerate obstacles
 path = BFS(Grid,start_state)
 while(light_goal not in path and dark_goal not in path):
+    Grid,start_state,light_goal,dark_goal = grid_initialization()
     Grid = obstacleMap(Grid,start_state,light_goal,dark_goal)
-    path_light = BFS(Grid,start_state)
+    path = BFS(Grid,start_state)
 
 #print grid
-print(Grid)
+# print(Grid)
 
 #Heuristic function for A*
 def H_score(node, goal, n):  
@@ -119,8 +118,49 @@ def lightPathASTAR(Grid, start,light_goal,dark_goal):
     return None, []
 
 light_path = lightPathASTAR(Grid,start_state,light_goal,dark_goal)
+print('light_path is')
 print(light_path)
 
 #initialize enemies in the path except for the path given by ASTAR to light.
-def initalize_enemies(Grid,start_state,light_goal,dark_goal):
-    pass
+# def initalize_enemies(Grid,start_state,light_goal,dark_goal):
+#     pass
+
+import random
+
+def initialize_enemies(Grid, start_state, light_goal, dark_goal, light_path):
+    enemy_probability = 0.2
+    path_to_light = set(light_path[1])  # Convert path to a set for faster lookup
+
+    def place_enemies():
+        for i in range(len(Grid)):
+            for j in range(len(Grid[0])):
+                if (i, j) not in [start_state, light_goal, dark_goal] and Grid[i][j] != -1 and (i, j) not in path_to_light:
+                    if random.random() < enemy_probability:
+                        Grid[i][j] = -2  #  -2 represents an enemy
+
+    def path_exists_without_enemies():
+        path = BFS(Grid, start_state)  
+        for node in path:
+            if Grid[node[0]][node[1]] == -2:  # Check if the path contains an enemy
+                return False
+        return True
+
+    while True:
+        print('no enemies in path , replacing enemies')
+        place_enemies()
+        if not path_exists_without_enemies():
+            break
+        else:
+            # Reset enemy positions if an enemy-free path to dark goal exists
+            for i in range(len(Grid)):
+                for j in range(len(Grid[0])):
+                    if Grid[i][j] == -2:
+                        Grid[i][j] = 0  # Reset the cell to empty
+
+    return Grid
+
+
+Grid = initialize_enemies(Grid, start_state, light_goal, dark_goal, light_path)
+print(Grid)
+
+visualize_grid(Grid, start_state, light_goal, dark_goal, light_path)
