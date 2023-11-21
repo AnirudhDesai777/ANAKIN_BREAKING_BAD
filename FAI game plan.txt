@@ -1,0 +1,29 @@
+STAR WARS GAME USING MDP, NLP and ....
+
+Our bot is Anakin, with two goal states : light and dark. Anakin has personality traits or parameters {Trust, health and compassion}. Initially, Anakin has a straight path towards the light  side. Our goal is to guide anakin to the dark side by giving him assertion statements such as "You are a murderrer" or " You are a nice person". There are three end states {Light, Dark and  Dead}. Win is Dark , light or dead means losing the game. We want anakin to kill as many enemies as possible before coming to dark state. As anakin kills as an enemy, the light states reward decreases and the dark side reward increases. But with every fight his health decreases. 
+
+The goal of the user is to guide anakin towards the dark side before anakins health becomes 0. This means the user has to give dark statements as well as light statements as anakin's health decreases. 
+
+
+RULES:
+1. Trust keeps dropping as health drops
+2. Compassion decides wether to kill the enemy or not. Reward = 100 - compassion
+3. Trust is an amplifying factor of the statements which we give and trust is dependent on the current health. 
+4. Health decreases as the game progressees. 
+5. Compassion is manipulated by the input statemnts
+
+
+
+
+
+
+
+
+
+
+
+
+
+How to develop the game:
+
+Generate two goal states, and place enemies at random, whichever goal path  has least enemies, that is the DARK side, goal path with more enemies becomes light state
