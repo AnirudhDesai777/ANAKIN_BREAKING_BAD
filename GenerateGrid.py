@@ -65,6 +65,11 @@ while(light_goal not in path and dark_goal not in path):
     Grid = obstacleMap(Grid,start_state,light_goal,dark_goal)
     path = BFS(Grid,start_state)
 
+print('start_state is ',start_state)
+print('light_goal is',light_goal,light_goal in path)
+print('dark_goal is',dark_goal,dark_goal in path)
+print(path)
+
 #print grid
 # print(Grid)
 
