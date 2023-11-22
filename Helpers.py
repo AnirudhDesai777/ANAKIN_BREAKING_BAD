@@ -13,7 +13,7 @@ def validNeighbourBFS(Grid, node):
         neighbors.append((node[0]-1, node[1]))    
     if node[1]+1 >= 0 and node[1]+1 < len(Grid) and Grid[node[0]][node[1]+1] != -1:
         neighbors.append((node[0], node[1]+1))
-    if node[1]-1 >= 0 and node[1]-1 < len(Grid) and Grid[node[1]][node[1]-1] != -1:
+    if node[1]-1 >= 0 and node[1]-1 < len(Grid) and Grid[node[0]][node[1]-1] != -1:
         neighbors.append((node[0], node[1]-1))
     
     return neighbors

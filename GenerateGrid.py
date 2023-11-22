@@ -60,15 +60,12 @@ Grid = obstacleMap(Grid,start_state,light_goal,dark_goal)
 
 #check if a path exists to the light goal otherwise regenerate obstacles
 path = BFS(Grid,start_state)
-while(light_goal not in path and dark_goal not in path):
+while (light_goal not in path or dark_goal not in path):
     Grid,start_state,light_goal,dark_goal = grid_initialization()
     Grid = obstacleMap(Grid,start_state,light_goal,dark_goal)
     path = BFS(Grid,start_state)
 
-print('start_state is ',start_state)
-print('light_goal is',light_goal,light_goal in path)
-print('dark_goal is',dark_goal,dark_goal in path)
-print(path)
+
 
 #print grid
 # print(Grid)
@@ -123,8 +120,8 @@ def lightPathASTAR(Grid, start,light_goal,dark_goal):
     return None, []
 
 light_path = lightPathASTAR(Grid,start_state,light_goal,dark_goal)
-print('light_path is')
-print(light_path)
+# print('light_path is')
+# print(light_path)
 
 #initialize enemies in the path except for the path given by ASTAR to light.
 # def initalize_enemies(Grid,start_state,light_goal,dark_goal):
@@ -143,7 +140,7 @@ def initialize_enemies(Grid, start_state, light_goal, dark_goal, light_path):
                     if random.random() < enemy_probability:
                         Grid[i][j] = -2  #  -2 represents an enemy
 
-    def path_exists_without_enemies():
+    def path_exists_without_enemies(): #TODO
         path = BFS(Grid, start_state)  
         for node in path:
             if Grid[node[0]][node[1]] == -2:  # Check if the path contains an enemy
@@ -166,6 +163,14 @@ def initialize_enemies(Grid, start_state, light_goal, dark_goal, light_path):
 
 
 Grid = initialize_enemies(Grid, start_state, light_goal, dark_goal, light_path)
-print(Grid)
+# print(Grid)
 
+# visualize_grid(Grid, start_state, light_goal, dark_goal, light_path)
+
+print('start_state is ',start_state)
+print('light_goal is',light_goal,light_goal in path)
+print('dark_goal is',dark_goal,dark_goal in path)
+print(path)
+# if dark_goal not in path or light_goal not in path:
 visualize_grid(Grid, start_state, light_goal, dark_goal, light_path)
+# print(path)
