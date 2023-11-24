@@ -2,7 +2,7 @@ import numpy as np
 import random
 import math
 import heapq
-from Helpers import validNeighbourBFS, validMovesASTAR, visualize_grid
+from Helpers import validNeighbourBFS, validMovesASTAR
 
 class GridGame:
     def __init__(self, size=10, obstacle_prob=0.2, enemy_prob=0.2):
@@ -105,17 +105,52 @@ class GridGame:
         return None, []
 
     def initialize_enemies(self, light_path):
-        path_to_light = set(light_path[1])
-        path_to_dark = self.BFS_to_goal(self.start_state, self.dark_goal)
+        enemy_probability = 0.2
+        path_to_light = set(light_path[1])  # Convert path to a set for faster lookup
+        path_to_dark = self.BFS_to_goal(self.start_state,self.dark_goal)
+    
+        # for i in range(len(Grid)):
+        #     for j in range(len(Grid[0])):
+        #         if Grid[i][j] != -1:  # If the cell is not an obstacle
+        #             path = BFS_to_goal(Grid, (i, j), dark_goal)  # Perform BFS to dark goal
+        #             for cell in path:
+        #                 path_to_dark.add(cell)
 
-        for i, j in np.ndindex(self.grid.shape):
-            if (i, j) not in [self.start_state, self.light_goal, self.dark_goal, *path_to_light] and self.grid[i][j] != -1:
-                if random.random() < self.enemy_prob:
-                    self.grid[i][j] = -2  # Enemy represented by -2
+        def place_enemies():
+            for i in range(len(self.grid)):
+                for j in range(len(self.grid[0])):
+                    if (i, j) not in [self.start_state, self.light_goal, self.dark_goal] and self.grid[i][j] != -1 and (i, j) not in path_to_light:
+                        if random.random() < enemy_probability:
+                            self.grid[i][j] = -2  #  -2 represents an enemy
 
-        for cell in path_to_dark:
-            if cell not in [self.start_state, self.light_goal, self.dark_goal, *path_to_light] and self.grid[cell[0]][cell[1]] != -1:
-                if random.random() < self.enemy_prob:
-                     self.grid[cell[0]][cell[1]] = -2
+
+        # def path_exists_without_enemies(): #TODO
+        #     path = BFS(Grid, start_state)  
+        #     for node in path:
+        #         if Grid[node[0]][node[1]] == -2:  # Check if the path contains an enemy
+        #             return False
+        #     return True
+    
+        # Function to ensure enemies on paths to dark goal
+        def place_enemies_on_dark_paths():
+            for cell in path_to_dark:
+                if cell not in [self.start_state, self.light_goal, self.dark_goal] and self.grid[cell[0]][cell[1]] != -1 and cell not in path_to_light:
+                    if random.random() < 0.1: #enemy_probability:
+                        self.grid[cell[0]][cell[1]] = -2  # Place an enemy
+
+        # while True:
+        place_enemies()
+        place_enemies_on_dark_paths()
+        # if not path_exists_without_enemies():
+        #     break
+        # else:
+        #     # Reset enemy positions if an enemy-free path to dark goal exists
+        #     for i in range(len(Grid)):
+        #         for j in range(len(Grid[0])):
+        #             if Grid[i][j] == -2:
+        #                 Grid[i][j] = 0  # Reset the cell to empty
+
+        return self.grid
+
 
 
