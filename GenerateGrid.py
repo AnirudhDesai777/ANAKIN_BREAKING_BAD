@@ -4,209 +4,118 @@ import math
 import heapq
 from Helpers import validNeighbourBFS, validMovesASTAR, visualize_grid
 
-import matplotlib.pyplot as plt
-import numpy as np
+class GridGame:
+    def __init__(self, size=10, obstacle_prob=0.2, enemy_prob=0.2):
+        self.size = size
+        self.obstacle_prob = obstacle_prob
+        self.enemy_prob = enemy_prob
+        self.grid, self.start_state, self.light_goal, self.dark_goal = self.grid_initialization()
 
+    def grid_initialization(self):
+        grid = np.zeros((self.size, self.size))
+        light_goal = (grid.shape[0] - 1, grid.shape[1] - 1)
+        dark_goal = (0, grid.shape[0] - 1)
+        grid[light_goal] = 100
+        grid[dark_goal] = 10
+        start_state = (math.floor((grid.shape[0] - 1) / 2), 0)
+        return grid, start_state, light_goal, dark_goal
 
-# randomly initialize cells as obstacles with a probability
+    def obstacleMap(self):
+        for i in range(self.size):
+            for j in range(self.size):
+                if (i, j) not in [self.start_state, self.light_goal, self.dark_goal]:
+                    if random.random() <= self.obstacle_prob:
+                        self.grid[i][j] = -1
 
-prob = 0.2
+    def BFS(self, start):
+        visited = set()
+        queue = [start]
+        visited.add(start)
+        path = []
 
-def obstacleMap(Grid,start_state,light_goal,dark_goal):
-    for i in range(len(Grid)):
-        for j in range(len(Grid)):
-            if (i,j)!= start_state and (i,j)!= light_goal and (i,j)!=dark_goal :
-                r = random.uniform(0,100)
-                r/=100
-                if(r<=prob):
-                    Grid[i][j] = -1
-    return Grid
+        while queue:
+            current = queue.pop(0)
+            path.append(current)
 
+            for neighbor in validNeighbourBFS(self.grid, current):
+                if neighbor not in visited:
+                    visited.add(neighbor)
+                    queue.append(neighbor)
 
-# running BFS to check for valid path from start to light
-def BFS(Grid, start):
-    visited = set()
-    queue = []  
-    queue.append(start)
-    visited.add(start)
-    path = []
-    while queue:
-        current = queue.pop(0)
-        path.append(current)
-        
-        # Add neighbors of the current node to the queue
-        for neighbor in validNeighbourBFS(Grid,current):
-            if neighbor not in visited:
-                visited.add(neighbor)
-                queue.append(neighbor)
-    
-    return path
+        return path
 
-def BFS_to_goal(Grid, start, goal):
-    visited = set()
-    queue = []  
-    queue.append((start, [start]))  # Store both node and path to node
-    visited.add(start)
+    def BFS_to_goal(self, start, goal):
+        visited = set()
+        queue = [(start, [start])]
+        visited.add(start)
 
-    while queue:
-        current, path = queue.pop(0)
-        if current == goal:
-            return path  # Return the path when the goal is reached
-        
-        # Add neighbors of the current node to the queue
-        for neighbor in validNeighbourBFS(Grid, current):
-            if neighbor not in visited:
-                visited.add(neighbor)
-                queue.append((neighbor, path + [neighbor]))  # Add to path
+        while queue:
+            current, path = queue.pop(0)
+            if current == goal:
+                return path
+            
+            for neighbor in validNeighbourBFS(self.grid, current):
+                if neighbor not in visited:
+                    visited.add(neighbor)
+                    queue.append((neighbor, path + [neighbor]))
 
-    return None  # Return None if goal is not reachable
+        return None
 
-    
-def grid_initialization(size=10):
-    shape = (size,size)
-    Grid = np.zeros(shape=shape)
-    #assign dark and light goal states
-    light_goal = (Grid.shape[0]-1,Grid.shape[1]-1)
-    dark_goal = (0,Grid.shape[0]-1)
-    Grid[light_goal] = 100
-    Grid[dark_goal] = 10
-    start_state = (math.floor((Grid.shape[0]-1)/2),0)
-    return Grid, start_state,light_goal,dark_goal
+    def H_score(self, node, goal):  
+        heuristic = (abs(node[0] - goal[0]) + abs(node[1] - goal[1])) / (self.size - 1)
+        return heuristic
 
-Grid,start_state,light_goal,dark_goal = grid_initialization()
+    def lightPathASTAR(self, start, light_goal, dark_goal):
+        g = {node: np.inf for node in np.ndindex(self.grid.shape)}
+        f = {}
+        openList = []
+        closeList = []
+        parent = {}
 
-#initialize obstacle map
-Grid = obstacleMap(Grid,start_state,light_goal,dark_goal)
+        g[start] = 0
+        f[start] = self.H_score(start, light_goal)
+        heapq.heappush(openList, (f[start], start))
 
-#check if a path exists to the light goal otherwise regenerate obstacles
-path = BFS(Grid,start_state)
-while (light_goal not in path or dark_goal not in path):
-    Grid,start_state,light_goal,dark_goal = grid_initialization()
-    Grid = obstacleMap(Grid,start_state,light_goal,dark_goal)
-    path = BFS(Grid,start_state)
+        while openList:
+            currentNode = heapq.heappop(openList)[1]
 
+            if currentNode in closeList:
+                continue
 
+            closeList.append(currentNode)
 
-#print grid
-# print(Grid)
+            if currentNode == light_goal:
+                path = []
+                while currentNode in parent:
+                    path.append(currentNode)
+                    currentNode = parent[currentNode]
+                path.append(start)
+                path.reverse()
+                return len(path) - 1, path
 
-#Heuristic function for A*
-def H_score(node, goal, n):  
-    heuristic = (abs(node[0] - goal[0]) + abs(node[1] - goal[1])) / (n - 1)
-    return heuristic
+            for neighbor in validMovesASTAR(self.grid, currentNode, dark_goal):
+                new_g = g[currentNode] + 1
 
-#finding shortest path from start state to light goal using A*
-def lightPathASTAR(Grid, start,light_goal,dark_goal):
+                if new_g < g[neighbor]:
+                    parent[neighbor] = currentNode
+                    g[neighbor] = new_g
+                    f[neighbor] = g[neighbor] + self.H_score(neighbor, light_goal)
+                    heapq.heappush(openList, (f[neighbor], neighbor))
 
-    g = {}
-    f = {}
-    openList = []
-    closeList = []
-    parent = {}
+        return None, []
 
-    for i in range(len(Grid)):
-        for j in range(len(Grid)):
-            g[(i, j)] = np.inf
+    def initialize_enemies(self, light_path):
+        path_to_light = set(light_path[1])
+        path_to_dark = self.BFS_to_goal(self.start_state, self.dark_goal)
 
-    g[start] = 0
-    f[start] = H_score(start, light_goal, len(Grid))
-    heapq.heappush(openList, (f[start], start))
+        for i, j in np.ndindex(self.grid.shape):
+            if (i, j) not in [self.start_state, self.light_goal, self.dark_goal, *path_to_light] and self.grid[i][j] != -1:
+                if random.random() < self.enemy_prob:
+                    self.grid[i][j] = -2  # Enemy represented by -2
 
-    while openList:
-        currentNode = heapq.heappop(openList)[1]
-
-        if currentNode in closeList:
-            continue
-
-        closeList.append(currentNode)
-
-        if currentNode == light_goal:
-            path = []
-            while currentNode in parent:
-                path.append(currentNode)
-                currentNode = parent[currentNode]
-            path.append(start)
-            path.reverse()
-            return len(path) - 1, path
-
-        for neighbor in validMovesASTAR(Grid, currentNode,dark_goal):
-            new_g = g[currentNode] + 1
-
-            if new_g < g[neighbor]:
-                parent[neighbor] = currentNode
-                g[neighbor] = new_g
-                f[neighbor] = g[neighbor] + H_score(neighbor, light_goal, len(Grid))
-                heapq.heappush(openList, (f[neighbor], neighbor))
-    return None, []
-
-light_path = lightPathASTAR(Grid,start_state,light_goal,dark_goal)
-# print('light_path is')
-# print(light_path)
-
-#initialize enemies in the path except for the path given by ASTAR to light.
-# def initalize_enemies(Grid,start_state,light_goal,dark_goal):
-#     pass
-
-import random
-
-def initialize_enemies(Grid, start_state, light_goal, dark_goal, light_path):
-    enemy_probability = 0.2
-    path_to_light = set(light_path[1])  # Convert path to a set for faster lookup
-    path_to_dark = BFS_to_goal(Grid,start_state,dark_goal)
-    
-    # for i in range(len(Grid)):
-    #     for j in range(len(Grid[0])):
-    #         if Grid[i][j] != -1:  # If the cell is not an obstacle
-    #             path = BFS_to_goal(Grid, (i, j), dark_goal)  # Perform BFS to dark goal
-    #             for cell in path:
-    #                 path_to_dark.add(cell)
-
-    def place_enemies():
-        for i in range(len(Grid)):
-            for j in range(len(Grid[0])):
-                if (i, j) not in [start_state, light_goal, dark_goal] and Grid[i][j] != -1 and (i, j) not in path_to_light:
-                    if random.random() < enemy_probability:
-                        Grid[i][j] = -2  #  -2 represents an enemy
-
-
-    # def path_exists_without_enemies(): #TODO
-    #     path = BFS(Grid, start_state)  
-    #     for node in path:
-    #         if Grid[node[0]][node[1]] == -2:  # Check if the path contains an enemy
-    #             return False
-    #     return True
-    
-        # Function to ensure enemies on paths to dark goal
-    def place_enemies_on_dark_paths():
         for cell in path_to_dark:
-            if cell not in [start_state, light_goal, dark_goal] and Grid[cell[0]][cell[1]] != -1 and cell not in path_to_light:
-                if random.random() < 0.1: #enemy_probability:
-                    Grid[cell[0]][cell[1]] = -2  # Place an enemy
-
-    # while True:
-    place_enemies()
-    place_enemies_on_dark_paths()
-        # if not path_exists_without_enemies():
-        #     break
-        # else:
-        #     # Reset enemy positions if an enemy-free path to dark goal exists
-        #     for i in range(len(Grid)):
-        #         for j in range(len(Grid[0])):
-        #             if Grid[i][j] == -2:
-        #                 Grid[i][j] = 0  # Reset the cell to empty
-
-    return Grid
+            if cell not in [self.start_state, self.light_goal, self.dark_goal, *path_to_light] and self.grid[cell[0]][cell[1]] != -1:
+                if random.random() < self.enemy_prob:
+                     self.grid[cell[0]][cell[1]] = -2
 
 
-Grid = initialize_enemies(Grid, start_state, light_goal, dark_goal, light_path)
-# print(Grid)
-
-# visualize_grid(Grid, start_state, light_goal, dark_goal, light_path)
-
-print('start_state is ',start_state)
-print('light_goal is',light_goal,light_goal in path)
-print('dark_goal is',dark_goal,dark_goal in path)
-print(path)
-# if dark_goal not in path or light_goal not in path:
-visualize_grid(Grid, start_state, light_goal, dark_goal, light_path)
-# print(path)
