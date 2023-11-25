@@ -81,7 +81,7 @@ def visualize_grid(grid, start_state, light_goal, dark_goal, light_path, dark_pa
     plt.show()
 
 
-def RewardMatrix(matrix):
+def gameRewards(matrix):
     # Iterate over each element in the matrix
     for i in range(matrix.shape[0]):
         for j in range(matrix.shape[1]):
@@ -92,5 +92,5 @@ def RewardMatrix(matrix):
             elif matrix[i][j] == 0:
                 matrix[i][j] = -1
             elif matrix[i][j] == 10:
-                matrix[i][j] = -10
+                matrix[i][j] = -500
     return matrix
