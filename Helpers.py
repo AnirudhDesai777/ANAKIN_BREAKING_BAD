@@ -88,9 +88,9 @@ def gameRewards(matrix):
             if matrix[i][j] == -2:
                 matrix[i][j] = -50
             elif matrix[i][j] == -1:
-                matrix[i][j] = -100
+                matrix[i][j] = -np.inf
             elif matrix[i][j] == 0:
                 matrix[i][j] = -1
             elif matrix[i][j] == 10:
-                matrix[i][j] = -500
+                matrix[i][j] = -200
     return matrix
