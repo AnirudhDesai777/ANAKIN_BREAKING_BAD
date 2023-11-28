@@ -2,35 +2,16 @@ from GenerateGrid import GridGame
 from Helpers import visualize_grid, gameRewards
 import numpy as np
 
-game = GridGame()
-Grid,start_state,light_goal,dark_goal = game.grid_initialization()
-
-#initialize obstacle map
-Grid = game.obstacleMap()
-
-
-path = game.BFS(start_state)
-while (light_goal not in path or dark_goal not in path):
-    Grid,start_state,light_goal,dark_goal = game.grid_initialization()
-    Grid = game.obstacleMap()
-    path = game.BFS(start_state)
-
-light_path = game.lightPathASTAR(start_state,light_goal,dark_goal)
-
-Grid = game.initialize_enemies(light_path)
-
-visualize_grid(Grid,start_state, light_goal, dark_goal, light_path)
-
-game_rewards = gameRewards(Grid)
-
 
 class GridSolver:
-    def __init__(self,game,discount_factor=0.9):
+    def __init__(self,game,dark_goal,light_goal,discount_factor=0.9):
         self.game = game
         self.values = np.zeros((len(game),len(game)))
         self.discount_factor = discount_factor
         self.actions = ['up','right','down','left']
         self.policy = np.zeros_like(game,dtype=np.object_)
+        self.dark_goal = dark_goal
+        self.light_goal = light_goal
     
     def calculate_values(self):
         
@@ -69,11 +50,17 @@ class GridSolver:
         elif action == 'left' and current_column_index > 0:
             new_column_index -= 1
         return new_row_index, new_column_index
+    
+    def is_terminal_state(self,row,col):
+        if (row,col) == self.light_goal:
+            return 'lost', True
+        if (row,col) == self.dark_goal:
+            return 'won', True
+        else:
+            return '', False
+    
 
+    
 
-agent = GridSolver(game_rewards)
-agent.calculate_values()
-print("Values:", agent.values)
-print("Policy:", agent.policy)
     
 

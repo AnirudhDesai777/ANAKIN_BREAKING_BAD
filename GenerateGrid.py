@@ -5,7 +5,7 @@ import heapq
 from Helpers import validNeighbourBFS, validMovesASTAR
 
 class GridGame:
-    def __init__(self, size=10, obstacle_prob=0.2, enemy_prob=0.2):
+    def __init__(self, size=20, obstacle_prob=0.2, enemy_prob=0.2):
         self.size = size
         self.obstacle_prob = obstacle_prob
         self.enemy_prob = enemy_prob
@@ -151,6 +151,8 @@ class GridGame:
         #                 Grid[i][j] = 0  # Reset the cell to empty
 
         return self.grid
+
+
 
 
 
