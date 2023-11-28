@@ -15,7 +15,7 @@ class GridGame:
         grid = np.zeros((self.size, self.size))
         light_goal = (grid.shape[0] - 1, grid.shape[1] - 1)
         dark_goal = (0, grid.shape[0] - 1)
-        grid[light_goal] = 100
+        grid[light_goal] = 150
         grid[dark_goal] = 10
         start_state = (math.floor((grid.shape[0] - 1) / 2), 0)
         return grid, start_state, light_goal, dark_goal
