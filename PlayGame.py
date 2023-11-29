@@ -51,17 +51,38 @@ senti = SentimentClassifier()
 
 temp_rewards = np.copy(game_rewards_matrix)
 senti_input = None
-while(agent.is_terminal_state(current_state[0],current_state[1])[1]==False or senti_input!= '0'):
-    action = agent.policy[current_state]
-    new_state = agent.get_next_cell(current_state[0],current_state[1],action)
+runGame = agent.game
+count = 1
+while(agent.is_terminal_state(current_state[0],current_state[1])[1]==False or senti_input!= 'STOP'):
     senti_input = input("Player input: ")
-    
     senti.feedData(senti_input)
     og_comp = senti.get_compassion()
     print("compassion :",og_comp)
     senti.modify_compassion()
-    print("modified compassion :",senti.get_compassion())
+    if(senti_input!=''):
+        for i in range(len(game_rewards_matrix)):
+            for j in range(len(game_rewards_matrix)):
+                if game_rewards_matrix[i,j] == -50: # enemies
+                    temp_rewards[i,j] = get_reward_killing_enemy(senti.get_compassion())
+                    if(count == 1):
+                        print("enemy",temp_rewards[i,j])
+                        count +=1
+                elif game_rewards_matrix[i,j] == 150: # light state
+                    #logic to change light state reward
+                    temp_rewards[i,j] = get_reward_light_side(senti.get_compassion())
+                    print("light goal",temp_rewards[i,j])
 
+                elif game_rewards_matrix[i,j] == -200: # dark state
+                    #logic to change dark state
+                    temp_rewards[i,j] = get_reward_dark_side(senti.get_compassion())
+                    print("dark goal",temp_rewards[i,j])
+    
+    print("modified compassion :",senti.get_compassion())
+    print('decay factor: ',senti.decay_factor)
+    action = agent.policy[current_state]
+    new_state = agent.get_next_cell(current_state[0],current_state[1],action)
+    current_state = new_state
+    print(current_state)
     # senti.output()
     # sentiment = senti.output()
     # compassion += sentiment['compound']* decaying_factor*scaling_factor
@@ -69,25 +90,5 @@ while(agent.is_terminal_state(current_state[0],current_state[1])[1]==False or se
 
     # if sentiment[0]['label'] == 'NEGATIVE':
     count = 1
-    for i in range(len(game_rewards_matrix)):
-        for j in range(len(game_rewards_matrix)):
-            
-            if game_rewards_matrix[i,j] == -50: # enemies
-                # print('chaning enemy rewar')
-                temp_rewards[i,j] = get_reward_killing_enemy(senti.get_compassion())
-                if(count == 1):
-                    print("enemy",temp_rewards[i,j])
-                    count +=1
-            elif game_rewards_matrix[i,j] == 150: # light state
-                #logic to change light state reward
-                temp_rewards[i,j] = get_reward_light_side(senti.get_compassion())
-                print("light goal",temp_rewards[i,j])
-            elif game_rewards_matrix[i,j] == -200: # dark state
-                #logic to change dark state
-                temp_rewards[i,j] = get_reward_dark_side(senti.get_compassion())
-                print("dark goal",temp_rewards[i,j])
-    agent.calculate_values()
-    print()
-    # print(game_rewards_matrix)
-    # print(temp_rewards)
+    
     
