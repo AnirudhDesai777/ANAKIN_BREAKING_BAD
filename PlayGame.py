@@ -51,7 +51,7 @@ senti = SentimentClassifier()
 
 temp_rewards = np.copy(game_rewards_matrix)
 senti_input = None
-while(agent.is_terminal_state(current_state[0],current_state[1])[1]==False or senti_input!= '0'):
+while(agent.is_terminal_state(current_state[0],current_state[1])[1]==False or senti_input!= 'ENDGAME'):
     action = agent.policy[current_state]
     new_state = agent.get_next_cell(current_state[0],current_state[1],action)
     senti_input = input("Player input: ")

@@ -25,7 +25,7 @@ class SentimentClassifier:
 
         compassion = self.compassion
         sentiment = self.output()
-        compassion += sentiment['compound']*10
+        compassion += sentiment['compound']*20
         
         compassion = min(100,compassion) 
         compassion = max(0,compassion)
