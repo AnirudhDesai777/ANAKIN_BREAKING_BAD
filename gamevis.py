@@ -75,38 +75,80 @@ def draw_grid():
                 color = GREEN
             elif cell_value == 100: # current_state
                 color = WHITE
-                # Move the white state randomly
-                if np.random.rand() < 0.25 and cell_value != -1:  # Adjust the probability as needed and exclude obstacle state
-                    Grid[row, col] = 0  # Clear the current state
-                    new_row = np.random.randint(Grid.shape[0])
-                    new_col = np.random.randint(Grid.shape[1])
-                    Grid[new_row, new_col] = 100  # Set the new random state
-                    row, col = new_row, new_col  # Update the row and col variables
+                # # Move the white state randomly
+                # if np.random.rand() < 0.25 and cell_value != -1:  # Adjust the probability as needed and exclude obstacle state
+                #     Grid[row, col] = 0  # Clear the current state
+                #     new_row = np.random.randint(Grid.shape[0])
+                #     new_col = np.random.randint(Grid.shape[1])
+                #     Grid[new_row, new_col] = 100  # Set the new random state
+                #     row, col = new_row, new_col  # Update the row and col variables
             pygame.draw.rect(screen, color, (col * cell_width, row * cell_height, cell_width, cell_height))
             pygame.draw.rect(screen, WHITE, (col * cell_width, row * cell_height, cell_width, cell_height), 1)  # Add mesh-like grid
 
 def draw_text_input():
+    # Render the text
     txt_surface = font.render(text, True, BLACK)
+    # Resize the box width if the text is too long.
+    width = max(200, txt_surface.get_width() + 10)
+    input_box.w = width
+    # Blit the text
     screen.blit(txt_surface, (input_box.x + 5, input_box.y + 5))
+    # Draw the input box
     pygame.draw.rect(screen, BLACK, input_box, 2)
 
 # Main game loop
 running = True
+active = True
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_BACKSPACE:
-                text = text[:-1]
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            # If the user clicked on the input_box rect.
+            if input_box.collidepoint(event.pos):
+                # Toggle the active variable.
+                active = not active
             else:
-                text += event.unicode
+                active = False
+        elif event.type == pygame.KEYDOWN:
+            if active:
+                if event.key == pygame.K_RETURN:
+                    print(text)  # You might want to handle the entered text here
+                    text = ''  # Clear the text
+                elif event.key == pygame.K_BACKSPACE:
+                    text = text[:-1]
+                else:
+                    text += event.unicode
 
     screen.fill(WHITE)
-
     draw_grid()
     draw_text_input()
-
     pygame.display.flip()
 
 pygame.quit()
+
+# def draw_text_input():
+#     txt_surface = font.render(text, True, BLACK)
+#     screen.blit(txt_surface, (input_box.x + 5, input_box.y + 5))
+#     pygame.draw.rect(screen, BLACK, input_box, 2)
+
+# # Main game loop
+# running = True
+# while running:
+#     for event in pygame.event.get():
+#         if event.type == pygame.QUIT:
+#             running = False
+#         elif event.type == pygame.KEYDOWN:
+#             if event.key == pygame.K_BACKSPACE:
+#                 text = text[:-1]
+#             else:
+#                 text += event.unicode
+
+#     screen.fill(WHITE)
+
+#     draw_grid()
+#     draw_text_input()
+
+#     pygame.display.flip()
+
+# pygame.quit()
