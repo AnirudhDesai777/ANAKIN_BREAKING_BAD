@@ -1,5 +1,5 @@
 from GenerateGrid import GridGame
-from Helpers import visualize_grid, gameRewards
+from Helpers import visualize_grid, gameRewards, validMoves
 import numpy as np
 
 
@@ -15,7 +15,7 @@ class GridSolver:
     
     def calculate_values(self,game):
         self.game = game
-        threshold = 0.01
+        threshold = 0.1
         while True:
             # print('stuck in loop')
             delta = 0
@@ -30,13 +30,20 @@ class GridSolver:
     
     def get_max_value(self,row,col):
         max_value = float('-inf')
+        val_list = []
+        valid_moves = validMoves(self.game,(row,col))
+
         for action in self.actions:
             next_row, next_col = self.get_next_cell(row, col, action)
+            if (next_row,next_col) not in valid_moves:
+                val_list.append(-1* (np.inf))
+                continue
             reward = self.game[next_row, next_col]
             value = reward + self.discount_factor * self.values[next_row, next_col]
-            if value > max_value:
-                max_value = value
-                self.policy[row, col] = action
+            val_list.append(value)
+        val_list = np.array(val_list)
+        max_value = max(val_list)
+        self.policy[row, col] = self.actions[np.argmax(val_list)]
         return max_value
 
     def get_next_cell(self,current_row_index, current_column_index, action):

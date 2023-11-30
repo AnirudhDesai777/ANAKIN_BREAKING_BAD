@@ -5,6 +5,8 @@ def get_reward_killing_enemy(compassion):
         raise Exception("Compassion factor must be between [0,100].") 
     if compassion > 50:
         return -50
+    elif compassion < 28.2:
+        return np.power((compassion - 75)/(-34.5) , 1/0.13) + 100
     elif compassion < 50:
         return np.power((compassion - 75)/(-34.5) , 1/0.13)
 

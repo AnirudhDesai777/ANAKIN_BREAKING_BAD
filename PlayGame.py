@@ -54,6 +54,7 @@ temp_rewards = np.copy(game_rewards_matrix)
 senti_input = None
 count = 1
 while not agent.is_terminal_state(current_state[0],current_state[1]):
+    temp2 = np.copy(agent.values)
     senti_input = input("Player input: ")
     senti.feedData(senti_input)
     og_comp = senti.get_compassion()
@@ -86,8 +87,10 @@ while not agent.is_terminal_state(current_state[0],current_state[1]):
         senti.modify_kill_compassion()
         print('compassion after killing',senti.get_compassion())
         print(senti.get_compassion())
-        
     agent.calculate_values(temp_rewards)
+
+    
+        
     
     # print(agent.values)
     print("modified compassion :",senti.get_compassion())

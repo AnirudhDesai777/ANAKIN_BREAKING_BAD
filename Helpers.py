@@ -94,3 +94,17 @@ def gameRewards(matrix):
             elif matrix[i][j] == 10:
                 matrix[i][j] = -200
     return matrix
+
+def validMoves(Grid, node):
+    neighbors = []
+    
+    if node[0]+1 >= 0 and node[0]+1 < len(Grid) and Grid[node[0]+1][node[1]] != -np.inf:
+        neighbors.append((node[0]+1, node[1]))
+    if node[0]-1 >= 0 and node[0]-1 < len(Grid) and Grid[node[0]-1][node[1]] != -np.inf:
+        neighbors.append((node[0]-1, node[1]))    
+    if node[1]+1 >= 0 and node[1]+1 < len(Grid) and Grid[node[0]][node[1]+1] != -np.inf:
+        neighbors.append((node[0], node[1]+1))
+    if node[1]-1 >= 0 and node[1]-1 < len(Grid) and Grid[node[0]][node[1]-1] != -np.inf:
+        neighbors.append((node[0], node[1]-1))
+    
+    return neighbors
