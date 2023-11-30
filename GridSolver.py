@@ -12,7 +12,14 @@ class GridSolver:
         self.policy = np.zeros_like(game,dtype=np.object_)
         self.dark_goal = dark_goal
         self.light_goal = light_goal
+        self.health = 100
     
+    def reduce_health(self):
+        self.health = self.health - 4
+
+    def get_health(self):
+        return self.health
+
     def calculate_values(self,game):
         self.game = game
         threshold = 0.1

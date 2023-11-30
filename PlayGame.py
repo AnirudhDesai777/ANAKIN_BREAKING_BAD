@@ -88,11 +88,13 @@ while not agent.is_terminal_state(current_state[0],current_state[1]):
         print('compassion after killing',senti.get_compassion())
         print(senti.get_compassion())
     agent.calculate_values(temp_rewards)
-
+    agent.reduce_health()
+    
     
         
     
     # print(agent.values)
+    print ("Anakin health :",agent.get_health())
     print("modified compassion :",senti.get_compassion())
     print('decay factor: ',senti.decay_factor)
     print('old state',current_state)
@@ -102,7 +104,9 @@ while not agent.is_terminal_state(current_state[0],current_state[1]):
     temp1 = np.copy(temp_rewards)
     temp1[current_state] = 69
     print(np.round(temp1,2))
-
+    
+    if agent.get_health() <= 0:
+        exit(0)
 
     # senti.output()
     # sentiment = senti.output()
