@@ -4,7 +4,7 @@ import numpy as np
 
 
 class GridSolver:
-    def _init_(self,game,dark_goal,light_goal,discount_factor=0.9):
+    def __init__(self,game,dark_goal,light_goal,discount_factor=0.9):
         self.game = game
         self.values = np.zeros((len(game),len(game)))
         self.discount_factor = discount_factor

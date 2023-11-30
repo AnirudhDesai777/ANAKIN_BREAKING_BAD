@@ -8,7 +8,7 @@ from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
 class SentimentClassifier:
 
-    def _init_(self,compassion=100) :
+    def __init__(self,compassion=100) :
         self.compassion = compassion
         self.decay_factor  = 1
         self.killing_factor = 1
