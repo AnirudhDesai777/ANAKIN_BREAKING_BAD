@@ -118,7 +118,7 @@ def draw_grid(grid):
                 # pygame.draw.rect(screen, GRAY, (col * cell_width, row * cell_height, cell_width, cell_height))
             pygame.draw.rect(screen, WHITE, (col * cell_width, row * cell_height, cell_width, cell_height), 1)  # Add mesh-like grid
 
-def draw_text_input(health, compassion):
+def draw_text_input(health, compassion,killed):
     # Render the text
     txt_surface = font.render(text, True, BLACK)
     # Resize the box width if the text is too long.
@@ -132,8 +132,11 @@ def draw_text_input(health, compassion):
     # Display health and compassion
     health_text = font.render(f"Health: {health}", True, BLACK)
     compassion_text = font.render(f"Dark Pull: {100-compassion}", True, BLACK)
+    killed_text = font.render(f"People Killed: {killed}", True, BLACK)
     screen.blit(health_text, (input_box.x + input_box.w + 10, input_box.y))
     screen.blit(compassion_text, (input_box.x + input_box.w + 10, input_box.y + 30))
+    screen.blit(killed_text, (input_box.x + input_box.w + 10, input_box.y + 60))
+
 
 # Main game loop
 running = True
@@ -213,7 +216,7 @@ while not agent.is_terminal_state(current_state[0],current_state[1]) :
 
     screen.fill(WHITE)
     draw_grid(temp1)
-    draw_text_input(health=agent.get_health(), compassion=senti.get_compassion())
+    draw_text_input(health=agent.get_health(), compassion=senti.get_compassion(),killed=senti.get_enemies_killed()-1)
     pygame.display.flip()
 
 pygame.quit()

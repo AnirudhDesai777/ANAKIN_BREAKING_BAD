@@ -42,5 +42,9 @@ class SentimentClassifier:
         self.compassion = min(self.compassion,100)
         self.compassion = max(0,self.compassion)
     
+    def get_enemies_killed(self):
+        return self.killing_factor
+    
+    
     def get_compassion(self):
         return self.compassion
