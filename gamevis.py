@@ -16,10 +16,14 @@ Grid,start_state,light_goal,dark_goal = game.grid_initialization()
 Grid = game.obstacleMap()
 #regenerate obstacles still there is a clear path from start to both light and dark
 path = game.BFS(start_state)
+count = 50
 while (light_goal not in path or dark_goal not in path):
     Grid,start_state,light_goal,dark_goal = game.grid_initialization()
     Grid = game.obstacleMap()
     path = game.BFS(start_state)
+    count -= 1
+    if count ==0:  # quit game if no path found after 50 tries
+        quit()
 
 #get light path
 light_path = game.lightPathASTAR(start_state,light_goal,dark_goal)
@@ -27,10 +31,27 @@ light_path = game.lightPathASTAR(start_state,light_goal,dark_goal)
 #initialize enemies
 Grid = game.initialize_enemies(light_path)
 
+#get reward matrix
+game_rewards_matrix = gameRewards(Grid)
+
+#initialize agent with a route to the light goal
+agent = GridSolver(game_rewards_matrix,dark_goal,light_goal)
+agent.calculate_values(game_rewards_matrix)
+
+current_state = start_state
+
+current_state = start_state
+
+action = agent.policy[current_state]
+
+senti = SentimentClassifier()
+
+temp_rewards = np.copy(game_rewards_matrix)
+
 print(Grid)
 
 
-pygame.init()
+pygame.init() # Initialize pygame
 
 # Screen dimensions
 screen_width, screen_height = 800, 600
@@ -60,32 +81,44 @@ font = pygame.font.Font(None, 36)
 text = ''
 input_box = pygame.Rect(0, grid_height, screen_width, input_height)
 
-def draw_grid():
-    for row in range(Grid.shape[0]):
-        for col in range(Grid.shape[1]):
-            cell_value = Grid[row, col]
-            color = GRAY
-            if cell_value == -1: #obstacle
-                color = BLACK
-            elif cell_value == -2: #enemy
-                color = RED
-            elif cell_value == 10: # dark goal
-                color = BLUE
-            elif cell_value == 150: # light goal
-                color = GREEN
-            elif cell_value == 100: # current_state
-                color = WHITE
-                # # Move the white state randomly
-                # if np.random.rand() < 0.25 and cell_value != -1:  # Adjust the probability as needed and exclude obstacle state
-                #     Grid[row, col] = 0  # Clear the current state
-                #     new_row = np.random.randint(Grid.shape[0])
-                #     new_col = np.random.randint(Grid.shape[1])
-                #     Grid[new_row, new_col] = 100  # Set the new random state
-                #     row, col = new_row, new_col  # Update the row and col variables
-            pygame.draw.rect(screen, color, (col * cell_width, row * cell_height, cell_width, cell_height))
+import pygame.image
+
+def draw_grid(grid):
+    obstacle_image = pygame.image.load('images/obstacles.png')  # Load the obstacle image
+    obstacle_image = pygame.transform.scale(obstacle_image, (cell_width, cell_height))  # Scale the image to match cell size
+
+    yoda_image = pygame.image.load('images/yoda.png')  # Load the yoda image
+    yoda_image = pygame.transform.scale(yoda_image, (cell_width, cell_height))  # Scale the image to match cell size
+
+    anakin_image = pygame.image.load('images/anakin_good.png')  # Load the anakin image
+    anakin_image = pygame.transform.scale(anakin_image, (cell_width, cell_height))  # Scale the image to match cell size
+
+    palpatine_image = pygame.image.load('images/palpatine.png')  # Load the palpatine image
+    palpatine_image = pygame.transform.scale(palpatine_image, (cell_width, cell_height))  # Scale the image to match cell size
+
+    younglings_image = pygame.image.load('images/youngling.png')  # Load the younglings image
+    younglings_image = pygame.transform.scale(younglings_image, (cell_width, cell_height))  # Scale the image to match cell size
+
+    for row in range(grid.shape[0]):
+        for col in range(grid.shape[1]):
+            cell_value = grid[row, col]
+            if cell_value == -np.inf:  # obstacle
+                screen.blit(obstacle_image, (col * cell_width, row * cell_height))
+            elif cell_value == -50:  # enemy
+                screen.blit(younglings_image, (col * cell_width, row * cell_height))
+            elif cell_value == -200:  # dark goal
+                screen.blit(palpatine_image, (col * cell_width, row * cell_height))
+            elif cell_value == 150:  # light goal
+                screen.blit(yoda_image, (col * cell_width, row * cell_height))
+            elif cell_value == 69:  # current_state
+                screen.blit(anakin_image, (col * cell_width, row * cell_height))
+            elif cell_value == -1:  # normal path
+                pygame.draw.rect(screen, GRAY, (col * cell_width, row * cell_height, cell_width, cell_height))
+            # else:
+                # pygame.draw.rect(screen, GRAY, (col * cell_width, row * cell_height, cell_width, cell_height))
             pygame.draw.rect(screen, WHITE, (col * cell_width, row * cell_height, cell_width, cell_height), 1)  # Add mesh-like grid
 
-def draw_text_input():
+def draw_text_input(health, compassion):
     # Render the text
     txt_surface = font.render(text, True, BLACK)
     # Resize the box width if the text is too long.
@@ -95,25 +128,83 @@ def draw_text_input():
     screen.blit(txt_surface, (input_box.x + 5, input_box.y + 5))
     # Draw the input box
     pygame.draw.rect(screen, BLACK, input_box, 2)
+    
+    # Display health and compassion
+    health_text = font.render(f"Health: {health}", True, BLACK)
+    compassion_text = font.render(f"Dark Pull: {100-compassion}", True, BLACK)
+    screen.blit(health_text, (input_box.x + input_box.w + 10, input_box.y))
+    screen.blit(compassion_text, (input_box.x + input_box.w + 10, input_box.y + 30))
 
 # Main game loop
 running = True
 active = True
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
+
+temp1 = np.copy(game_rewards_matrix)
+temp1[start_state] = 69
+while not agent.is_terminal_state(current_state[0],current_state[1]) :
+    for event in pygame.event.get(): # User did something
+        if event.type == pygame.QUIT: # If user clicked close
             running = False
-        elif event.type == pygame.MOUSEBUTTONDOWN:
+        elif event.type == pygame.MOUSEBUTTONDOWN: # User clicked somewhere
             # If the user clicked on the input_box rect.
-            if input_box.collidepoint(event.pos):
+            if input_box.collidepoint(event.pos): 
                 # Toggle the active variable.
                 active = not active
-            else:
+            else: # User clicked somewhere else
                 active = False
-        elif event.type == pygame.KEYDOWN:
+        elif event.type == pygame.KEYDOWN: # User pressed a key
             if active:
                 if event.key == pygame.K_RETURN:
+                    count = 1
                     print(text)  # You might want to handle the entered text here
+                    senti_input = text # input("Player input: ")
+                    senti.feedData(senti_input)
+                    og_comp = senti.get_compassion()
+                    print("compassion :",og_comp)
+                    senti.modify_compassion()
+                    if(senti_input!=''):
+                        for i in range(len(game_rewards_matrix)):
+                            for j in range(len(game_rewards_matrix)):
+                                if game_rewards_matrix[i,j] == -50: # enemies
+                                    temp_rewards[i,j] = get_reward_killing_enemy(senti.get_compassion())
+                                    if(count == 1):
+                                        print("enemy",temp_rewards[i,j])
+                                        count +=1
+                                elif game_rewards_matrix[i,j] == 150: # light state
+                                    temp_rewards[i,j] = get_reward_light_side(senti.get_compassion())
+                                    print("light goal",temp_rewards[i,j])
+                                elif game_rewards_matrix[i,j] == -200: # dark state
+                                    temp_rewards[i,j] = get_reward_dark_side(senti.get_compassion())
+                                    print("dark goal",temp_rewards[i,j])
+                    action = agent.policy[current_state]
+
+                    new_state = agent.get_next_cell(current_state[0],current_state[1],action)
+
+                    if(game_rewards_matrix[current_state]==-50):
+                        game_rewards_matrix[current_state] = -1
+                        temp_rewards[current_state] = -1
+                        print('compassion after killing',senti.get_compassion())
+                        print(senti.get_compassion())
+                    agent.calculate_values(temp_rewards)
+                    agent.reduce_health()
+
+                    print ("Anakin health :",agent.get_health())
+                    print("modified compassion :",senti.get_compassion())
+                    print('decay factor: ',senti.decay_factor)
+                    print('old state',current_state)
+                    print('new state',new_state)
+                    print(np.round(agent.values,1))
+                    current_state = new_state
+                    temp1 = np.copy(game_rewards_matrix)
+                    temp2 = np.copy(temp_rewards)
+                    temp2[current_state] = 69
+                    temp1[current_state] = 69
+                    print(np.round(temp2,2))
+                    
+                    if agent.get_health() <= 0:
+                        exit(0)
+
+
                     text = ''  # Clear the text
                 elif event.key == pygame.K_BACKSPACE:
                     text = text[:-1]
@@ -121,34 +212,9 @@ while running:
                     text += event.unicode
 
     screen.fill(WHITE)
-    draw_grid()
-    draw_text_input()
+    draw_grid(temp1)
+    draw_text_input(health=agent.get_health(), compassion=senti.get_compassion())
     pygame.display.flip()
 
 pygame.quit()
 
-# def draw_text_input():
-#     txt_surface = font.render(text, True, BLACK)
-#     screen.blit(txt_surface, (input_box.x + 5, input_box.y + 5))
-#     pygame.draw.rect(screen, BLACK, input_box, 2)
-
-# # Main game loop
-# running = True
-# while running:
-#     for event in pygame.event.get():
-#         if event.type == pygame.QUIT:
-#             running = False
-#         elif event.type == pygame.KEYDOWN:
-#             if event.key == pygame.K_BACKSPACE:
-#                 text = text[:-1]
-#             else:
-#                 text += event.unicode
-
-#     screen.fill(WHITE)
-
-#     draw_grid()
-#     draw_text_input()
-
-#     pygame.display.flip()
-
-# pygame.quit()
