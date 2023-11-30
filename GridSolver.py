@@ -4,7 +4,7 @@ import numpy as np
 
 
 class GridSolver:
-    def __init__(self,game,dark_goal,light_goal,discount_factor=0.9):
+    def _init_(self,game,dark_goal,light_goal,discount_factor=0.9):
         self.game = game
         self.values = np.zeros((len(game),len(game)))
         self.discount_factor = discount_factor
@@ -13,10 +13,11 @@ class GridSolver:
         self.dark_goal = dark_goal
         self.light_goal = light_goal
     
-    def calculate_values(self):
-        
+    def calculate_values(self,game):
+        self.game = game
         threshold = 0.01
         while True:
+            # print('stuck in loop')
             delta = 0
             for i in range(len(self.game)):
                 for j in range(len(self.game)):
@@ -24,7 +25,7 @@ class GridSolver:
                     new_value = self.get_max_value(i,j) 
                     self.values[i,j] = new_value
             delta = max(delta, np.abs(old_value - new_value))
-            if delta < threshold:
+            if delta < threshold: # to break the loop
                 break
     
     def get_max_value(self,row,col):
@@ -53,14 +54,8 @@ class GridSolver:
     
     def is_terminal_state(self,row,col):
         if (row,col) == self.light_goal:
-            return 'lost', True
+            return True
         if (row,col) == self.dark_goal:
-            return 'won', True
+            return True
         else:
-            return '', False
-    
-
-    
-
-    
-
+            return False

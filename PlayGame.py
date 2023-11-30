@@ -20,6 +20,7 @@ Grid = game.obstacleMap()
 #regenerate obstacles still there is a clear path from start to both light and dark
 path = game.BFS(start_state)
 while (light_goal not in path or dark_goal not in path):
+    print('regenrating grid, no path to light')
     Grid,start_state,light_goal,dark_goal = game.grid_initialization()
     Grid = game.obstacleMap()
     path = game.BFS(start_state)
@@ -37,9 +38,9 @@ Grid = game.initialize_enemies(light_path)
 game_rewards_matrix = gameRewards(Grid)
 
 
-#initial agent with a route to the light goal
+#initialize agent with a route to the light goal
 agent = GridSolver(game_rewards_matrix,dark_goal,light_goal)
-agent.calculate_values()
+agent.calculate_values(game_rewards_matrix)
 
 
 
@@ -51,9 +52,8 @@ senti = SentimentClassifier()
 
 temp_rewards = np.copy(game_rewards_matrix)
 senti_input = None
-runGame = agent.game
 count = 1
-while(agent.is_terminal_state(current_state[0],current_state[1])[1]==False or senti_input!= 'STOP'):
+while not agent.is_terminal_state(current_state[0],current_state[1]):
     senti_input = input("Player input: ")
     senti.feedData(senti_input)
     og_comp = senti.get_compassion()
@@ -76,13 +76,31 @@ while(agent.is_terminal_state(current_state[0],current_state[1])[1]==False or se
                     #logic to change dark state
                     temp_rewards[i,j] = get_reward_dark_side(senti.get_compassion())
                     print("dark goal",temp_rewards[i,j])
-    
-    print("modified compassion :",senti.get_compassion())
-    print('decay factor: ',senti.decay_factor)
+                
     action = agent.policy[current_state]
     new_state = agent.get_next_cell(current_state[0],current_state[1],action)
+
+    if(game_rewards_matrix[current_state]==-50):
+        game_rewards_matrix[current_state] = -1
+        temp_rewards[current_state] = -1
+        senti.modify_kill_compassion()
+        print('compassion after killing',senti.get_compassion())
+        print(senti.get_compassion())
+        
+    agent.calculate_values(temp_rewards)
+    
+    # print(agent.values)
+    print("modified compassion :",senti.get_compassion())
+    print('decay factor: ',senti.decay_factor)
+    print('old state',current_state)
+    print('new state',new_state)
+    print(np.round(agent.values,1))
     current_state = new_state
-    print(current_state)
+    temp1 = np.copy(temp_rewards)
+    temp1[current_state] = 69
+    print(np.round(temp1,2))
+
+
     # senti.output()
     # sentiment = senti.output()
     # compassion += sentiment['compound']* decaying_factor*scaling_factor
@@ -90,5 +108,3 @@ while(agent.is_terminal_state(current_state[0],current_state[1])[1]==False or se
 
     # if sentiment[0]['label'] == 'NEGATIVE':
     count = 1
-    
-    

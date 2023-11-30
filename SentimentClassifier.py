@@ -8,9 +8,10 @@ from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
 class SentimentClassifier:
 
-    def __init__(self,compassion=100) :
+    def _init_(self,compassion=100) :
         self.compassion = compassion
         self.decay_factor  = 1
+        self.killing_factor = 1
     def feedData(self,data):
         # self.sentiment_pipeline = pipeline("sentiment-analysis")
         self.data = data
@@ -33,6 +34,13 @@ class SentimentClassifier:
         compassion = min(100,compassion) 
         compassion = max(0,compassion)
         self.compassion = compassion
+    
+    def modify_kill_compassion(self):
+
+        self.compassion -= 1.5*self.killing_factor
+        self.killing_factor +=1
+        self.compassion = min(self.compassion,100)
+        self.compassion = max(0,self.compassion)
     
     def get_compassion(self):
         return self.compassion
