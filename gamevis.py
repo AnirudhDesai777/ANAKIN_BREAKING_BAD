@@ -83,7 +83,7 @@ input_box = pygame.Rect(0, grid_height, screen_width, input_height)
 
 import pygame.image
 
-def draw_grid(grid):
+def draw_grid(grid,compassion):
     obstacle_image = pygame.image.load('images/obstacles.png')  # Load the obstacle image
     obstacle_image = pygame.transform.scale(obstacle_image, (cell_width, cell_height))  # Scale the image to match cell size
 
@@ -92,6 +92,12 @@ def draw_grid(grid):
 
     anakin_image = pygame.image.load('images/anakin_good.png')  # Load the anakin image
     anakin_image = pygame.transform.scale(anakin_image, (cell_width, cell_height))  # Scale the image to match cell size
+
+    anakin_red = pygame.image.load('images/anakin_red.png')  # Load the anakin image
+    anakin_red = pygame.transform.scale(anakin_red, (cell_width, cell_height))  # Scale the image to match cell size
+
+    anakin_red_bright = pygame.image.load('images/anakin_red_brighter.png')  # Load the anakin image
+    anakin_red_bright = pygame.transform.scale(anakin_red_bright, (cell_width, cell_height))  # Scale the image to match cell size
 
     palpatine_image = pygame.image.load('images/palpatine.png')  # Load the palpatine image
     palpatine_image = pygame.transform.scale(palpatine_image, (cell_width, cell_height))  # Scale the image to match cell size
@@ -111,7 +117,12 @@ def draw_grid(grid):
             elif cell_value == 150:  # light goal
                 screen.blit(yoda_image, (col * cell_width, row * cell_height))
             elif cell_value == 69:  # current_state
-                screen.blit(anakin_image, (col * cell_width, row * cell_height))
+                if compassion <28.2:
+                    screen.blit(anakin_red_bright, (col * cell_width, row * cell_height))
+                elif compassion <50:
+                    screen.blit(anakin_red, (col * cell_width, row * cell_height))
+                else:
+                    screen.blit(anakin_image, (col * cell_width, row * cell_height))
             elif cell_value == -1:  # normal path
                 pygame.draw.rect(screen, GRAY, (col * cell_width, row * cell_height, cell_width, cell_height))
             # else:
@@ -148,6 +159,7 @@ active = True
 
 temp1 = np.copy(game_rewards_matrix)
 temp1[start_state] = 69
+kill_count = 0
 while not agent.is_terminal_state(current_state[0],current_state[1]) :
     for event in pygame.event.get(): # User did something
         if event.type == pygame.QUIT: # If user clicked close
@@ -186,11 +198,12 @@ while not agent.is_terminal_state(current_state[0],current_state[1]) :
                     action = agent.policy[current_state]
 
                     new_state = agent.get_next_cell(current_state[0],current_state[1],action)
-
+                    current_state = new_state
                     if(game_rewards_matrix[current_state]==-50):
                         game_rewards_matrix[current_state] = -1
                         temp_rewards[current_state] = -1
                         senti.modify_kill_compassion()
+                        kill_count +=1
                         print('compassion after killing',senti.get_compassion())
                         print(senti.get_compassion())
                     agent.calculate_values(temp_rewards)
@@ -202,7 +215,6 @@ while not agent.is_terminal_state(current_state[0],current_state[1]) :
                     print('old state',current_state)
                     print('new state',new_state)
                     print(np.round(agent.values,1))
-                    current_state = new_state
                     temp1 = np.copy(game_rewards_matrix)
                     temp2 = np.copy(temp_rewards)
                     temp2[current_state] = 69
@@ -218,10 +230,10 @@ while not agent.is_terminal_state(current_state[0],current_state[1]) :
                     text = text[:-1]
                 else:
                     text += event.unicode
-
+    
     screen.fill(WHITE)
-    draw_grid(temp1)
-    draw_text_input(health=agent.get_health(), compassion=senti.get_compassion(),killed=senti.get_enemies_killed()-1)
+    draw_grid(temp1,senti.get_compassion())
+    draw_text_input(health=agent.get_health(), compassion=senti.get_compassion(),killed=kill_count)
     pygame.display.flip()
 
 pygame.quit()
