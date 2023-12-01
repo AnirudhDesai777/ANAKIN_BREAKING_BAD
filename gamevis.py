@@ -133,9 +133,13 @@ def draw_text_input(health, compassion,killed):
     health_text = font.render(f"Health: {health}", True, BLACK)
     compassion_text = font.render(f"Dark Pull: {100-compassion}", True, BLACK)
     killed_text = font.render(f"People Killed: {killed}", True, BLACK)
+    game_score = font.render(f"Game_score: {killed*10}", True, BLACK)
+
     screen.blit(health_text, (input_box.x + input_box.w + 10, input_box.y))
     screen.blit(compassion_text, (input_box.x + input_box.w + 10, input_box.y + 30))
     screen.blit(killed_text, (input_box.x + input_box.w + 10, input_box.y + 60))
+    screen.blit(game_score, (input_box.x + input_box.w + 10, input_box.y + 90))
+
 
 
 # Main game loop
