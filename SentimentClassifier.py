@@ -54,7 +54,7 @@ class SentimentClassifier:
     
     def modify_kill_compassion(self):
 
-        self.compassion -= 1.5*self.killing_factor
+        self.compassion -= 4*self.killing_factor
         self.killing_factor +=1
         self.compassion = min(self.compassion,100)
         self.compassion = max(0,self.compassion)
