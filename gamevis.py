@@ -186,7 +186,7 @@ while not agent.is_terminal_state(current_state[0],current_state[1]) :
                     if(game_rewards_matrix[current_state]==-50):
                         game_rewards_matrix[current_state] = -1
                         temp_rewards[current_state] = -1
-                        senti.modify_compassion()
+                        senti.modify_kill_compassion()
                         print('compassion after killing',senti.get_compassion())
                         print(senti.get_compassion())
                     agent.calculate_values(temp_rewards)
