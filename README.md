@@ -11,7 +11,7 @@ Ensure that you have all the dependecies installed. Refer to the Requirements se
 
 `python gamevis.py`
 
-##Objective:
+## Objective:
 
 In this engaging game, players take on the role of Anakin Skywalker, aiming to reach the "light goal" indicated by Yoda, which keeps Anakin on the path of good. However, the unique twist of the game is that players are encouraged to subtly manipulate Anakin towards the dark side, leading him to the "dark goal" represented by Palpatine. 
 
