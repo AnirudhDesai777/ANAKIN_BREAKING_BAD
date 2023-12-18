@@ -27,4 +27,19 @@ Welcome to the dark side!
 
 https://github.com/Mani676901/ANAKIN_BREAKING_BAD/assets/45784014/ac31e6c7-ed29-4fdc-bfe8-37deb7e967be
 
+## Methodology
+#### Grid generation
+ * BFS
+ * A*
 
+#### Bot navigation (Reinforcement learning)
+ * MDP
+ * Value iteration
+
+#### Dynamic rewards
+ * A curved exponential rewards function to create unique scenarios
+
+#### Adjusting compassion or dark pull (NLP)
+ *  VADER (Valence Aware Dictionary For Sentiment Reasoning)
+ *  Sentence transformers
+    
