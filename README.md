@@ -1,4 +1,4 @@
-# FAI_project
+# Foundation of AI
 FAI project - Anakin breaking bad!
 
 ![DALL·E 2023-12-14 12 50 23 - A Lego-themed scene in a futuristic training room  The setting includes a Lego warrior in full-body black armor, resembling a space knight, and Lego y](https://github.com/Mani676901/ANAKIN_BREAKING_BAD/assets/45784014/acb6db6b-015b-4eed-afa8-fdfb33114fa2)
